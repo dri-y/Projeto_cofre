@@ -1,0 +1,500 @@
+//Projeto do Cofre
+//Por GE Projetos
+
+#include <Wire.h>  //Biblioteca para Comunicação I2C
+#include <LiquidCrystal_I2C.h>  //Biblioteca com as funções do display
+#include <Servo.h> // Biblioteca do Servo Motor
+
+LiquidCrystal_I2C lcd(0x27,2,1,0,4,5,6,7,3, POSITIVE);// Inicializa o display no endereco 0x27
+
+Servo servoTrancaCofre; // Servo Responsável por trancar o cofre
+
+//Define as linhas e colunas do teclado:
+int linha1=4,linha2=5,linha3=6,linha4=7;
+int coluna1=8, coluna2=9, coluna3=10, coluna4=11;
+
+int fimDeCurso = 13; // chave fim de curso
+int pos=0; //posição do servo motor
+
+int tentativas=0; // tentativas que o usuário tem para colocar a senha correta
+
+char senha[6]="ABC123"; //variável que armazena a senha
+char textoDigitadoPeloUsuario[6]; //váriavel que armazenará o texto digitado pelo usuário para comparar com a senha
+
+bool abrirCofre = false, alterarSenha = false;
+
+int a=0, p=0;
+
+//Função para Escrever os caracteres no Display
+void escreveNoDisplay(int linha, int coluna) {
+ if(linha==4 && coluna==8){
+ lcd.print('1');
+ textoDigitadoPeloUsuario[a]='1';
+ }
+ if(linha==4 && coluna==9){
+ lcd.print('2');
+ textoDigitadoPeloUsuario[a]='2';
+ }
+ if(linha==4 && coluna==10){
+ lcd.print('3');
+ textoDigitadoPeloUsuario[a]='3';
+ }
+ if(linha==4 && coluna==11){
+ lcd.print('A');
+ textoDigitadoPeloUsuario[a]='A';
+ }
+ if(linha==5 && coluna==8){
+ lcd.print('4');
+ textoDigitadoPeloUsuario[a]='4';
+ }
+ if(linha==5 && coluna==9){
+ lcd.print('5');  
+ textoDigitadoPeloUsuario[a]='5';
+ }
+ if(linha==5 && coluna==10){
+ lcd.print('6');
+ textoDigitadoPeloUsuario[a]='6';
+ }
+ if(linha==5 && coluna==11){
+ lcd.print('B');
+ textoDigitadoPeloUsuario[a]='B';
+ }
+ if(linha==6 && coluna==8){
+ lcd.print('7');
+ textoDigitadoPeloUsuario[a]='7';
+ }
+ if(linha==6 && coluna==9){
+ lcd.print('8');
+ textoDigitadoPeloUsuario[a]='8';
+ }
+ if(linha==6 && coluna==10){
+ lcd.print('9');
+ textoDigitadoPeloUsuario[a]='9';
+ }
+ if(linha==6 && coluna==11){
+ lcd.print('C');
+ textoDigitadoPeloUsuario[a]='C';
+ }
+ if(linha==7 && coluna==9){
+ lcd.print('0');
+ textoDigitadoPeloUsuario[a]='0';
+ }
+ if(linha==7 && coluna==10 && a>0){
+ lcd.clear(); // apaga todos os caracteres da tela do display
+ lcd.setCursor(0,0);//Marca o cursor na posição coluna 0, linha 0
+ lcd.print("Digite a senha:");//Escreve a mensagem a partir da posição coluna 0, linha 0
+ lcd.setCursor(5,1);
+ for (int carac=0; carac<a-1; carac+=1){
+  lcd.print(textoDigitadoPeloUsuario[carac]);
+ }
+ a=a-2;
+ }
+  else if (linha==7 && coluna==10 && a==0) {
+  a=a-1;
+ }
+ if(linha==7 && coluna==11){
+ lcd.print('D');
+ textoDigitadoPeloUsuario[a]='D';
+ }
+ a++;
+ delay(15);
+}
+
+void alteraSenha(int linha, int coluna) {
+ if(linha==4 && coluna==8){
+ lcd.print('1');
+ senha[p]='1';
+ }
+ if(linha==4 && coluna==9){
+ lcd.print('2');
+ senha[p]='2';
+ }
+ if(linha==4 && coluna==10){
+ lcd.print('3');
+ senha[p]='3';
+ }
+ if(linha==4 && coluna==11){
+ lcd.print('A');
+ senha[p]='A';
+ }
+ if(linha==5 && coluna==8){
+ lcd.print('4');
+ senha[p]='4';
+ }
+ if(linha==5 && coluna==9){
+ lcd.print('5');  
+ senha[p]='5';
+ }
+ if(linha==5 && coluna==10){
+ lcd.print('6');
+ senha[p]='6';
+ }
+ if(linha==5 && coluna==11){
+ lcd.print('B');
+ senha[p]='B';
+ }
+ if(linha==6 && coluna==8){
+ lcd.print('7');
+ senha[p]='7';
+ }
+ if(linha==6 && coluna==9){
+ lcd.print('8');
+ senha[p]='8';
+ }
+ if(linha==6 && coluna==10){
+ lcd.print('9');
+ senha[p]='9';
+ }
+ if(linha==6 && coluna==11){
+ lcd.print('C');
+ senha[p]='C';
+ }
+ if(linha==7 && coluna==9){
+ lcd.print('0');
+ senha[p]='0';
+ }
+ if(linha==7 && coluna==10 && p>0){
+ lcd.clear(); // apaga todos os caracteres da tela do display
+ lcd.setCursor(0,0);//Marca o cursor na posição coluna 0, linha 0
+ lcd.print("Nova Senha:");//Escreve a mensagem a partir da posição coluna 0, linha 0
+ lcd.setCursor(5,1);
+ for (int carac=0; carac<p-1; carac+=1){
+  lcd.print(senha[carac]);
+ }
+ p=p-2;
+ }
+ else if (linha==7 && coluna==10 && p==0) {
+  p=p-1;
+ }
+ if(linha==7 && coluna==11){
+ lcd.print('D');
+ senha[p]='D';
+ }
+ p++;
+ delay(15);
+}
+
+void senhaIncorreta() {
+  lcd.setCursor(0,0);//Marca o cursor na posição coluna 0, linha 0
+  lcd.print("Senha Incorreta");
+  delay(2000);
+  lcd.setCursor(0,1);//Marca o cursor na posição coluna 0, linha 1
+  lcd.print("Tente novamente");
+  delay(2000);
+  resetaCofre();
+  tentativas++;
+}
+
+void senhaCorreta() {
+  lcd.setCursor(0,0);//Marca o cursor na posição coluna 0, linha 0
+  lcd.print("Senha Correta");
+  delay(1000);  
+  // Servo Motor destranca o cofre
+  for (pos = 0; pos <= 90; pos += 1) {
+    servoTrancaCofre.write(pos);              
+    delay(15);                       
+  }
+  lcd.setCursor(0,1);//Marca o cursor na posição coluna 0, linha 1
+  lcd.print("Cofre Aberto");
+  a++;
+  delay(5000);
+}
+
+void resetaCofre() {
+  lcd.clear(); // apaga todos os caracteres da tela do display
+  lcd.setCursor(0,0);//Marca o cursor na posição coluna 0, linha 0
+  lcd.print("Digite a senha:");//Escreve a mensagem a partir da posição coluna 0, linha 0
+  lcd.setCursor(5,1);
+  a=0;
+}
+
+void telaInicial() {
+  lcd.clear(); // apaga todos os caracteres da tela do display
+  lcd.setCursor(0,0);//Marca o cursor na posição coluna 0, linha 0
+  lcd.print("A- Abrir o cofre");//Escreve a mensagem a partir da posição coluna 0, linha 0
+  lcd.setCursor(0,1);
+  lcd.print("B- Alterar senha");
+  abrirCofre = false; 
+  alterarSenha = false;
+  a=0;
+  p=0;  
+}
+
+void alarme() {  // Função para acionar o alarme
+  lcd.clear(); // apaga todos os caracteres da tela do display
+  lcd.setCursor(5,0);//Marca o cursor na posição coluna 0, linha 0
+  lcd.print("ALARME");//Escreve a mensagem a partir da posição coluna 0, linha 0
+  for (int vezesQueAlarmeToca=0; vezesQueAlarmeToca<15; vezesQueAlarmeToca+=1) {
+  for (int freq = 500; freq<2000; freq+=1) {
+  tone(3,freq);
+  delayMicroseconds(600);
+}
+  }
+  noTone(3);
+}
+
+ 
+void setup()
+{
+  lcd.begin (16,2);//Identifica que o display possui 16 colunas e 2 linhas
+  lcd.setBacklight(HIGH);//Liga a luz de fundo
+  lcd.setCursor(0,0);//Marca o cursor na posição coluna 0, linha 0
+  lcd.print("A- Abrir o cofre");//Escreve a mensagem a partir da posição coluna 0, linha 0
+  lcd.setCursor(0,1);
+  lcd.print("B- Alterar senha");
+  //Todos os fios das linhas do teclado são definidos como saídas
+  pinMode(linha1,OUTPUT);
+  pinMode(linha2,OUTPUT);
+  pinMode(linha3,OUTPUT);
+  pinMode(linha4,OUTPUT);
+  //Todos os fios das colunas do teclado são definidos como entradas
+  pinMode(coluna1,INPUT);
+  pinMode(coluna2,INPUT);
+  pinMode(coluna3,INPUT);
+  pinMode(coluna4,INPUT);
+  // Define o pino 12 do Arduino para controlar o servo motor
+  servoTrancaCofre.attach(12);
+  servoTrancaCofre.write(0); // Inicia o servo na posição 0°
+  // Define o pino de fim de curso como entrada
+  pinMode(fimDeCurso,INPUT);
+}
+ 
+void loop() {
+  
+  if (abrirCofre == false && alterarSenha == false) {
+  for (int linhaX=4; linhaX<6; linhaX++) {
+    digitalWrite(linha1,LOW);
+    digitalWrite(linha2,LOW);
+    //Coloca em 5V a linhaX
+    digitalWrite(linhaX,HIGH);
+    if (digitalRead(coluna4)==HIGH && linhaX==4) {
+      abrirCofre = true;
+      while (digitalRead(coluna4)==HIGH){}
+      resetaCofre();    
+    }
+    if (digitalRead(coluna4)==HIGH && linhaX==5) {
+      alterarSenha = true;
+      while (digitalRead(coluna4)==HIGH){}
+      resetaCofre();      
+  }
+  }
+  }
+
+  if (alterarSenha == true) {
+  if (a==6){ //se o usuário digitar os 6 caracteres da senha
+    digitalWrite(linha4,HIGH);
+    if (digitalRead(coluna1)==HIGH) { //Se o botão de enter for apertado
+    lcd.clear(); // apaga todos os caracteres da tela do display
+    //compara o texto digitado pelo usuário com a senha gravada na memória
+    for (int x=0; x<6; x+=1){
+      if (senha[x]!=textoDigitadoPeloUsuario[x]){
+         x=6;
+        if (tentativas==2) {
+        alarme();
+        telaInicial(); 
+        tentativas=0;
+        }
+        else {
+        senhaIncorreta();  
+        }
+      }
+      if (x==5) {
+        a++;
+        tentativas=0;
+  lcd.setCursor(0,0);//Marca o cursor na posição coluna 0, linha 0
+  lcd.print("Senha Correta");
+  delay(2500);
+  lcd.clear(); // apaga todos os caracteres da tela do display
+  lcd.setCursor(0,0);//Marca o cursor na posição coluna 0, linha 0
+  lcd.print("Digite a nova");
+  lcd.setCursor(0,1);//Marca o cursor na posição coluna 0, linha 0
+  lcd.print("senha ...");
+  delay(2500);
+  lcd.clear(); // apaga todos os caracteres da tela do display
+  lcd.setCursor(0,0);//Marca o cursor na posição coluna 0, linha 0
+  lcd.print("Nova Senha:");//Escreve a mensagem a partir da posição coluna 0, linha 0
+  lcd.setCursor(5,1);             
+      }
+    }
+  }
+  else if (digitalRead(coluna3)==HIGH) {
+ lcd.clear(); // apaga todos os caracteres da tela do display
+ lcd.setCursor(0,0);//Marca o cursor na posição coluna 0, linha 0
+ lcd.print("Digite a senha:");//Escreve a mensagem a partir da posição coluna 0, linha 0
+ lcd.setCursor(5,1);
+ for (int carac2=0; carac2<a-1; carac2+=1){
+  lcd.print(textoDigitadoPeloUsuario[carac2]);
+ }
+ a=a-1;
+ while (digitalRead(coluna3)==HIGH){}    
+  }
+  digitalWrite(linha4,LOW);
+  }
+  else if (a<6) {
+  for (int linhaX=4; linhaX<8; linhaX++) {
+    //Coloca em 0V todas as saídas das linhas do teclado
+    digitalWrite(linha1,LOW);
+    digitalWrite(linha2,LOW);
+    digitalWrite(linha3,LOW);
+    digitalWrite(linha4,LOW);
+    //Coloca em 5V a linhaX
+    digitalWrite(linhaX,HIGH);
+    if (digitalRead(coluna1)==HIGH && linhaX!=7){
+      escreveNoDisplay(linhaX, coluna1);
+      while (digitalRead(coluna1)==HIGH){}
+    }
+    if (digitalRead(coluna2)==HIGH){
+      escreveNoDisplay(linhaX, coluna2);
+      while (digitalRead(coluna2)==HIGH){}
+    }
+    if (digitalRead(coluna3)==HIGH){
+      escreveNoDisplay(linhaX, coluna3);
+      while (digitalRead(coluna3)==HIGH){}
+    }
+    if (digitalRead(coluna4)==HIGH){
+      escreveNoDisplay(linhaX, coluna4);
+      while (digitalRead(coluna4)==HIGH){}
+    }
+  }
+  }
+  else if (a>6) {
+    if (p<6) {    
+  for (int linhaX=4; linhaX<8; linhaX++) {
+    //Coloca em 0V todas as saídas das linhas do teclado
+    digitalWrite(linha1,LOW);
+    digitalWrite(linha2,LOW);
+    digitalWrite(linha3,LOW);
+    digitalWrite(linha4,LOW);
+    //Coloca em 5V a linhaX
+    digitalWrite(linhaX,HIGH);
+    if (digitalRead(coluna1)==HIGH && linhaX!=7){
+      alteraSenha(linhaX, coluna1);
+      while (digitalRead(coluna1)==HIGH){}
+    }
+    if (digitalRead(coluna2)==HIGH){
+      alteraSenha(linhaX, coluna2);
+      while (digitalRead(coluna2)==HIGH){}
+    }
+    if (digitalRead(coluna3)==HIGH){
+      alteraSenha(linhaX, coluna3);
+      while (digitalRead(coluna3)==HIGH){}
+    }
+    if (digitalRead(coluna4)==HIGH){
+      alteraSenha(linhaX, coluna4);
+      while (digitalRead(coluna4)==HIGH){}
+    }
+  }
+  }
+  if (p==6){ //se o usuário digitar os 6 caracteres da senha
+    digitalWrite(linha4,HIGH);
+    if (digitalRead(coluna1)==HIGH) { //Se o botão de enter for apertado
+    lcd.clear(); // apaga todos os caracteres da tela do display
+    lcd.setCursor(0,0);//Marca o cursor na posição coluna 0, linha 0
+    lcd.print("Senha alterada");//Escreve a mensagem a partir da posição coluna 0, linha 0
+    lcd.setCursor(0,1);
+    lcd.print("com sucesso...");
+    delay(3000);
+    telaInicial();
+    }
+      else if (digitalRead(coluna3)==HIGH) {
+ lcd.clear(); // apaga todos os caracteres da tela do display
+ lcd.setCursor(0,0);//Marca o cursor na posição coluna 0, linha 0
+ lcd.print("Nova Senha:");//Escreve a mensagem a partir da posição coluna 0, linha 0
+ lcd.setCursor(5,1);
+ for (int carac3=0; carac3<p-1; carac3+=1){
+  lcd.print(senha[carac3]);
+ }
+ p=p-1;
+ while (digitalRead(coluna3)==HIGH){}
+ digitalWrite(linha4,LOW);    
+  }
+  }
+  }      
+  }
+  
+  if (abrirCofre == true) {
+  if (a==6){ //se o usuário digitar os 6 caracteres da senha
+    digitalWrite(linha4,HIGH);
+    if (digitalRead(coluna1)==HIGH) { //Se o botão de enter for apertado
+    lcd.clear(); // apaga todos os caracteres da tela do display
+    //compara o texto digitado pelo usuário com a senha gravada na memória
+    for (int x=0; x<6; x+=1){
+      if (senha[x]!=textoDigitadoPeloUsuario[x]){
+         x=6;
+        if (tentativas==2) {
+        alarme();
+        telaInicial(); 
+        tentativas=0;
+        }
+        else {
+        senhaIncorreta();  
+        }
+      }
+      if (x==5) {
+        senhaCorreta();
+        tentativas=0;
+      }
+    }
+  }
+  else if (digitalRead(coluna3)==HIGH) {
+ lcd.clear(); // apaga todos os caracteres da tela do display
+ lcd.setCursor(0,0);//Marca o cursor na posição coluna 0, linha 0
+ lcd.print("Digite a senha:");//Escreve a mensagem a partir da posição coluna 0, linha 0
+ lcd.setCursor(5,1);
+ for (int carac2=0; carac2<a-1; carac2+=1){
+  lcd.print(textoDigitadoPeloUsuario[carac2]);
+ }
+ a=a-1;
+ while (digitalRead(coluna3)==HIGH){}    
+  }
+  digitalWrite(linha4,LOW);
+  }
+  else if (a<6) {
+  for (int linhaX=4; linhaX<8; linhaX++) {
+    //Coloca em 0V todas as saídas das linhas do teclado
+    digitalWrite(linha1,LOW);
+    digitalWrite(linha2,LOW);
+    digitalWrite(linha3,LOW);
+    digitalWrite(linha4,LOW);
+    //Coloca em 5V a linhaX
+    digitalWrite(linhaX,HIGH);
+    if (digitalRead(coluna1)==HIGH && linhaX!=7){
+      escreveNoDisplay(linhaX, coluna1);
+      while (digitalRead(coluna1)==HIGH){}
+    }
+    if (digitalRead(coluna2)==HIGH){
+      escreveNoDisplay(linhaX, coluna2);
+      while (digitalRead(coluna2)==HIGH){}
+    }
+    if (digitalRead(coluna3)==HIGH){
+      escreveNoDisplay(linhaX, coluna3);
+      while (digitalRead(coluna3)==HIGH){}
+    }
+    if (digitalRead(coluna4)==HIGH){
+      escreveNoDisplay(linhaX, coluna4);
+      while (digitalRead(coluna4)==HIGH){}
+    }
+  }
+  }
+  else if (a>6) {
+    if (digitalRead(fimDeCurso)==HIGH){  //se a chave fim de curso for acionada
+      lcd.clear(); // apaga todos os caracteres da tela do display
+      lcd.setCursor(0,0);//Marca o cursor na posição coluna 0, linha 0
+      lcd.print("Trancando o");//Escreve a mensagem a partir da posição coluna 0, linha 0
+      lcd.setCursor(0,1);
+      lcd.print("Cofre...");
+      delay(1000);
+    for (pos = 90; pos >= 0; pos -= 1) { //tranca o cofre
+    servoTrancaCofre.write(pos);              
+    delay(15);                       
+  } 
+  delay(1500);
+      lcd.clear(); // apaga todos os caracteres da tela do display
+      lcd.setCursor(0,0);//Marca o cursor na posição coluna 0, linha 0
+      lcd.print("Cofre Trancado");//Escreve a mensagem a partir da posição coluna 0, linha 0
+      delay(2500);
+      telaInicial(); 
+    }
+  }
+}
+  }
