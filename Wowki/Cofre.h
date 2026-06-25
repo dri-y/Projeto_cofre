@@ -63,7 +63,7 @@ public:
     void ordenarUsuariosPorId(){
     	for(int i=0;i< qtdUsuarios-1; i++){
     		for(int j=0; j < qtdUsuarios-i-1; j++){
-    			if(usuarios[j]).getId()>usuarios[j+1].getId()){
+    			if(usuarios[j]).getId() > usuarios[j+1].getId()){
     				Usuario temp = usuarios[j];
     				usuarios[j] = usuarios[j+1];
     				usuarios[j+1] = temp;
