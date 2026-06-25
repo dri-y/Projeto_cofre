@@ -20,6 +20,15 @@ private:
 
 public:
 
+	void validarRetorno(){//Função recursiva
+		display.mostrar("Pressione 1 para voltar");
+		cin>> acessoGlobal;
+		
+		if(acessoGlobal != 1){
+			display.mostrar("Valor invalido!");
+			validarRetorno();
+		}
+	}
    Menu() {
     acessoGlobal = 0;
     tentativas = 0;
@@ -27,7 +36,7 @@ public:
     cofre.adicionarUsuario(Usuario(1,"carlos","123",true));
     cofre.adicionarUsuario(Usuario(2,"maria","456",false));
 
-    //cout << "Quantidade de usuarios: "  << cofre.getUsuarios().size() << endl;
+    
 }
 
     void selecao() {
@@ -55,23 +64,11 @@ public:
                     display.mostrar("pressione 1 para voltar");
                     cin >> acessoGlobal;
 
-                    if (acessoGlobal == 1) {
-                        selecao();
-                    }
-                    else {
-
-                        display.mostrar("valor invalido!");
-
-                        while (acessoGlobal != 1) {
-                            display.mostrar("pressione 1 para voltar");
-                            cin >> acessoGlobal;
-                        }
+                    validarRetorno();
 
                         selecao();
                     }
-                }
-
-                break;
+					break;
 
             case 3:
                 cadastrarUsuario();
@@ -93,7 +90,7 @@ public:
  Usuario* usuarios = cofre.getUsuarios();
  int qtdUsuarios = cofre.getqtdUsuarios();
 
-   // cout << "Quantidade no cofre: " << usuarios.size() << endl;
+   
 
     for (int  i = 0; i < qtdUsuarios; i++) {
     	
@@ -184,26 +181,11 @@ public:
 
         display.mostrar("Usuario cadastrado com sucesso!");
 
-        display.mostrar("pressione 1 para voltar");
-        cin >> acessoGlobal;
-
-        if (acessoGlobal == 1) {
+        	validarRetorno();
 
             selecao();
-
-        } else {
-
-            display.mostrar("valor invalido!");
-
-            while (acessoGlobal != 1) {
-
-                display.mostrar("pressione 1 para voltar");
-                cin >> acessoGlobal;
-            }
-
-            selecao();
-        }
-    }
+	}
+    
 
     void login() {
 
