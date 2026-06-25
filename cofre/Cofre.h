@@ -4,7 +4,6 @@
 #include <iostream>
 #include "Usuario.h"
 using namespace std;
-
 class Cofre {
 private:
     static int total_usuarios = 100;
