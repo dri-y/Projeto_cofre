@@ -1,12 +1,12 @@
 #ifndef USUARIO_H
 #define USUARIO_H
-#include <string>
+#include <Arduino.h>
 using namespace std;
 class Usuario {
 private:
     int id;
-    string nome;
-    string senha;
+    String nome;
+    String senha;
     bool admin;
 
 public:
@@ -16,7 +16,7 @@ public:
     senha = "";
     admin = false;
 }
-    Usuario(int id, string nome, string senha, bool admin = false) {
+    Usuario(int id, String nome, String senha, bool admin = false) {
         this->id = id;
         this->nome = nome;
         this->senha = senha;
@@ -27,11 +27,11 @@ public:
         return id;
     }
 
-    string getNome() {
+    String getNome() {
         return nome;
     }
 
-    string getSenha() {
+    String getSenha() {
         return senha;
     }
 
@@ -39,7 +39,7 @@ public:
         return admin;
     }
     
-    bool verificarSenha(string tentativa) {
+    bool verificarSenha(String tentativa) {
         return senha == tentativa;
     }
 };
