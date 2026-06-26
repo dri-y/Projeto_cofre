@@ -18,7 +18,7 @@ public:
     }
 
     void desligar() {
-        noTone(pinoBuzzer); 
+        noTone(pinoBuzzer);
     }
 };
 
