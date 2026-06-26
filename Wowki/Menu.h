@@ -12,31 +12,28 @@ private:
     Display display;
     Teclado teclado;
     Alarme alarme;
-
-    int tentativas;
+    int tentativas; 
 
 public:
     Menu() {
         tentativas = 0;
+        cofre.adicionarUsuario(Usuario(1, "Admin", "1234", true));
+        cofre.adicionarUsuario(Usuario(2, "Carlos", "5678", false));
+    }
 
+    void iniciar() {
         display.iniciar();
-
-        // Usuários padrão
-        cofre.adicionarUsuario(Usuario(1, "", "1234", true));
-        cofre.adicionarUsuario(Usuario(2, "", "5678", false));
+        cofre.iniciar(); 
     }
 
     void selecao() {
-
-        display.mostrar("1-Login");
+        display.mostrar("1-Login             3-Cadastrar         2-Listar"); 
         char opcao = teclado.lerTecla();
 
         switch (opcao) {
-
-            case '1':
-                login();
-                break;
-
+            case '1': login(); break;
+            case '2': listarUsuarios(); break;
+            case '3': cadastrarUsuario(); break;
             default:
                 display.mostrar("Opcao invalida");
                 delay(1500);
@@ -45,41 +42,47 @@ public:
     }
 
     bool validarAcessoAdmin() {
-
-        display.mostrar("ID:");
+        display.mostrar("Admin ID:");
         int id = teclado.lerId();
-
-        display.mostrar("Senha:");
+        display.mostrar("Admin Senha:");
         String senha = teclado.lerSenha();
-
         return cofre.validarAdmin(id, senha);
     }
 
-    void cadastrarUsuario() {
-
+    void listarUsuarios() {
         if (!validarAcessoAdmin()) {
             display.mostrar("Sem permissao");
             delay(2000);
             return;
         }
+        display.mostrar("Ordenando...");
+        cofre.ordenarUsuariosPorId(); 
+        delay(1000);
+        Usuario* lista = cofre.getUsuarios();
+        int qtd = cofre.getQtdUsuarios();
+        if (qtd == 0) {
+            display.mostrar("Nenhum usuario");
+            delay(2000);
+        } else {
+            display.listaUsuarios(lista, qtd); 
+        }
+    }
 
-        int id;
-        String senha;
-        bool repetido;
-
+    void cadastrarUsuario() {
+        if (!validarAcessoAdmin()) {
+            display.mostrar("Sem permissao");
+            delay(2000);
+            return;
+        }
+        int id; String senha; bool repetido;
         Usuario* usuarios = cofre.getUsuarios();
         int qtdUsuarios = cofre.getQtdUsuarios();
 
-        // Verifica ID repetido
         do {
-
             repetido = false;
-
             display.mostrar("Novo ID:");
             id = teclado.lerId();
-
             for (int i = 0; i < qtdUsuarios; i++) {
-
                 if (usuarios[i].getId() == id) {
                     display.mostrar("ID existente");
                     delay(1500);
@@ -87,19 +90,13 @@ public:
                     break;
                 }
             }
-
         } while (repetido);
 
-        // Verifica senha repetida
         do {
-
             repetido = false;
-
             display.mostrar("Senha 4 dig:");
             senha = teclado.lerSenha();
-
             for (int i = 0; i < qtdUsuarios; i++) {
-
                 if (usuarios[i].getSenha() == senha) {
                     display.mostrar("Senha existe");
                     delay(1500);
@@ -107,65 +104,54 @@ public:
                     break;
                 }
             }
-
         } while (repetido);
 
-        Usuario novo(id, "", senha, false);
-
-        if (cofre.adicionarUsuario(novo)) {
-            display.mostrar("Cadastrado!");
-        } else {
-            display.mostrar("Memoria cheia");
-        }
-
+        Usuario novo(id, "User " + String(id), senha, false); 
+        if (cofre.adicionarUsuario(novo)) { display.mostrar("Cadastrado!"); } 
+        else { display.mostrar("Memoria cheia"); }
         delay(2000);
     }
 
     void login() {
-
         display.mostrar("ID:");
         int id = teclado.lerId();
-
         display.mostrar("Senha:");
         String senha = teclado.lerSenha();
 
         if (cofre.autenticar(id, senha)) {
-
-            tentativas = 0;
-
+            tentativas = 0; 
+            
+            // 1. Move o servo para abrir (90°)
             cofre.abrir();
+            display.mostrar("Cofre aberto!");
+            delay(2000); 
 
-            display.mostrar("Cofre aberto");
+            display.mostrar("Porta aberta...");
 
-            // Aqui você pode movimentar o servo:
-            // servo.write(90);
+            // 2. Garanta que você começa a simulação com a chave para a DIREITA (GND/false)
+            // O código fica esperando aqui até você jogar a chave para a ESQUERDA (5V/true)
+            while (cofre.portaEncostada() == false) {
+                delay(50); 
+            }
 
-            delay(3000);
-
-            cofre.fechar();
-
-            // servo.write(0);
-
-            display.mostrar("Cofre fechado");
+            // 3. Chave movida -> Tranca o cofre e volta o servo para 0°
+            display.mostrar("Fechando tranca");
+            delay(1000);
+            cofre.fechar(); 
+            
+            display.mostrar("Cofre trancado");
             delay(2000);
-
         } else {
-
             display.mostrar("Acesso negado");
             delay(2000);
-
             tentativas++;
-
             if (tentativas >= 3) {
-
                 alarme.disparar();
                 delay(5000);
                 alarme.desligar();
-
                 tentativas = 0;
             }
         }
     }
 };
-
 #endif
