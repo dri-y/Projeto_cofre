@@ -12,18 +12,20 @@ private:
     Display display;
     Teclado teclado;
     Alarme alarme;
-    int tentativas; 
+    int tentativas;
 
 public:
     Menu() {
         tentativas = 0;
+        
+       
         cofre.adicionarUsuario(Usuario(1, "Admin", "1234", true));
         cofre.adicionarUsuario(Usuario(2, "Carlos", "5678", false));
     }
 
     void iniciar() {
         display.iniciar();
-        cofre.iniciar(); 
+        cofre.iniciar();
     }
 
     void selecao() {
@@ -31,9 +33,18 @@ public:
         char opcao = teclado.lerTecla();
 
         switch (opcao) {
-            case '1': login(); break;
-            case '2': listarUsuarios(); break;
-            case '3': cadastrarUsuario(); break;
+            case '1':
+                login();
+                break;
+
+            case '2':
+                listarUsuarios(); 
+                break;
+
+            case '3':
+                cadastrarUsuario(); 
+                break;
+
             default:
                 display.mostrar("Opcao invalida");
                 delay(1500);
@@ -42,27 +53,30 @@ public:
     }
 
     bool validarAcessoAdmin() {
-        display.mostrar("Admin ID:");
-        int id = teclado.lerId();
-        display.mostrar("Admin Senha:");
-        String senha = teclado.lerSenha();
+        
+        int id = teclado.lerId(display, "Admin ID:");
+        String senha = teclado.lerSenha(display, "Admin Senha:");
+
         return cofre.validarAdmin(id, senha);
     }
 
     void listarUsuarios() {
         if (!validarAcessoAdmin()) {
             display.mostrar("Sem permissao");
-            delay(2000);
+            delay(1000);
             return;
         }
+
         display.mostrar("Ordenando...");
         cofre.ordenarUsuariosPorId(); 
         delay(1000);
+
         Usuario* lista = cofre.getUsuarios();
         int qtd = cofre.getQtdUsuarios();
+
         if (qtd == 0) {
             display.mostrar("Nenhum usuario");
-            delay(2000);
+            delay(1000);
         } else {
             display.listaUsuarios(lista, qtd); 
         }
@@ -71,17 +85,22 @@ public:
     void cadastrarUsuario() {
         if (!validarAcessoAdmin()) {
             display.mostrar("Sem permissao");
-            delay(2000);
+            delay(1000);
             return;
         }
-        int id; String senha; bool repetido;
+
+        int id;
+        String senha;
+        bool repetido;
+
         Usuario* usuarios = cofre.getUsuarios();
         int qtdUsuarios = cofre.getQtdUsuarios();
 
         do {
             repetido = false;
-            display.mostrar("Novo ID:");
-            id = teclado.lerId();
+           
+            id = teclado.lerId(display, "Novo ID:");
+
             for (int i = 0; i < qtdUsuarios; i++) {
                 if (usuarios[i].getId() == id) {
                     display.mostrar("ID existente");
@@ -94,8 +113,9 @@ public:
 
         do {
             repetido = false;
-            display.mostrar("Senha 4 dig:");
-            senha = teclado.lerSenha();
+            
+            senha = teclado.lerSenha(display, "Senha 4 dig:");
+
             for (int i = 0; i < qtdUsuarios; i++) {
                 if (usuarios[i].getSenha() == senha) {
                     display.mostrar("Senha existe");
@@ -107,24 +127,29 @@ public:
         } while (repetido);
 
         Usuario novo(id, "User " + String(id), senha, false); 
-        if (cofre.adicionarUsuario(novo)) { display.mostrar("Cadastrado!"); } 
-        else { display.mostrar("Memoria cheia"); }
-        delay(2000);
+
+        if (cofre.adicionarUsuario(novo)) {
+            display.mostrar("Cadastrado!");
+        } else {
+            display.mostrar("Memoria cheia");
+        }
+
+        delay(1000);
     }
 
+    
     void login() {
-        display.mostrar("ID:");
-        int id = teclado.lerId();
-        display.mostrar("Senha:");
-        String senha = teclado.lerSenha();
+        
+        int id = teclado.lerId(display, "ID:");
+        String senha = teclado.lerSenha(display, "Senha:");
 
         if (cofre.autenticar(id, senha)) {
             tentativas = 0; 
             
-           
+            
             cofre.abrir();
             display.mostrar("Cofre aberto!");
-            delay(2000); 
+            delay(1000); 
 
             display.mostrar("Porta aberta...");
 
@@ -133,24 +158,46 @@ public:
                 delay(50); 
             }
 
-            
             display.mostrar("Fechando tranca");
             delay(1000);
             cofre.fechar(); 
             
             display.mostrar("Cofre trancado");
-            delay(2000);
+            delay(1000);
         } else {
             display.mostrar("Acesso negado");
-            delay(2000);
+            delay(1000);
             tentativas++;
+
+            
             if (tentativas >= 3) {
-                alarme.disparar();
-                delay(5000);
-                alarme.desligar();
-                tentativas = 0;
+                alarme.disparar(); 
+                
+                bool liberado = false;
+                while (!liberado) {
+                    display.mostrar("BLOQUEADO!      Insira Admin ID:");
+                    int adminId = teclado.lerId(display, "Admin ID:");
+                    
+                    display.mostrar("Admin Senha:");
+                    String adminSenha = teclado.lerSenha(display, "Admin Senha:");
+                    
+                    
+                    if (cofre.validarAdmin(adminId, adminSenha)) {
+                        liberado = true; 
+                        display.mostrar("Alarme desligado");
+                        delay(1000);
+                    } else {
+                        display.mostrar("Admin invalido!");
+                        delay(1000);
+                       
+                    }
+                }
+                
+                alarme.desligar(); 
+                tentativas = 0;    
             }
         }
     }
 };
+
 #endif
