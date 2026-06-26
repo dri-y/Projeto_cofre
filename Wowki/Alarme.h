@@ -14,11 +14,11 @@ public:
     }
 
     void disparar() {
-        tone(pinoBuzzer, 1000); // Emite um som de 1000 Hz
+        tone(pinoBuzzer, 1000); 
     }
 
     void desligar() {
-        noTone(pinoBuzzer); // Desliga o buzzer
+        noTone(pinoBuzzer); 
     }
 };
 
