@@ -1,0 +1,19 @@
+#include "Menu.h"
+#include "Teclado.h"
+Menu sistema;
+Teclado teclado;
+void setup() {
+    sistema.iniciar();
+    
+    //Serial.begin(115200);
+  //Serial.println("Sistema iniciado");
+}
+
+void loop() {
+    sistema.selecao();
+   
+
+  //Serial.print("Tecla: ");
+  //Serial.println(tecla);
+
+}
