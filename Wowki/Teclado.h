@@ -31,6 +31,10 @@ public:
 
         do {
             tecla = keypad.getKey();
+            if (tecla != NO_KEY) {
+            Serial.print("Tecla lida: ");
+            Serial.println(tecla);
+        }
         } while (tecla == NO_KEY);
 
         return tecla;
