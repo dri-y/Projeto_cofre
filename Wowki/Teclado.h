@@ -60,7 +60,7 @@ public:
         while (true) {
             char tecla = lerTecla();
 
-            if (tecla == '#') {   // '#' confirma a entrada
+            if (tecla == '#') {   
                 break;
             }
 
