@@ -64,7 +64,7 @@ public:
         return false;
     }
     
-    // Na sua montagem atual: Chave para a esquerda = Porta Encostada (HIGH/5V)
+  
     bool portaEncostada() {
         return digitalRead(pinoFimDeCurso) == HIGH; 
     }
