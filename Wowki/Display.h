@@ -35,7 +35,7 @@ public:
             lcd.setCursor(0, 1);
             lcd.print(usuarios[i].getNome());
 
-            delay(1000); // Exibe cada usuário por 2 segundos
+            delay(1000); 
         }
     }
 };
