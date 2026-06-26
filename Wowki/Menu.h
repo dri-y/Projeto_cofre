@@ -121,20 +121,19 @@ public:
         if (cofre.autenticar(id, senha)) {
             tentativas = 0; 
             
-            // 1. Move o servo para abrir (90°)
+           
             cofre.abrir();
             display.mostrar("Cofre aberto!");
             delay(2000); 
 
             display.mostrar("Porta aberta...");
 
-            // 2. Garanta que você começa a simulação com a chave para a DIREITA (GND/false)
-            // O código fica esperando aqui até você jogar a chave para a ESQUERDA (5V/true)
+            
             while (cofre.portaEncostada() == false) {
                 delay(50); 
             }
 
-            // 3. Chave movida -> Tranca o cofre e volta o servo para 0°
+            
             display.mostrar("Fechando tranca");
             delay(1000);
             cofre.fechar(); 
